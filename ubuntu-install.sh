@@ -65,6 +65,8 @@ bundle exec rake db:test:prepare
 # then the spork command can be run
 bundle exec spork cucumber
 
+# for migration grader
+# need to check out an appropriate instance of rottenpotatoes ...
 
 
 
