@@ -142,3 +142,46 @@ When /^I run the ruby intro grader for "(.*?)"$/ do |homework_number|
 
   @output = `ruby #{$APP}/grade #{@codefile} #{specfile}`
 end
+
+
+Given(/^an incoming request with uri "(.*?)" and homework "(.*?)" and spec "(.*?)"$/) do |uri, homework_dir, path_to_spec|
+  file = File.open('config/test_autograders.yml',"w")
+  file.write %Q{
+  assign-0-queue:
+    name: "test-pull"
+    type: WeightedRspecGrader
+  }
+  file.flush
+  @codefile = file.path
+
+  file = File.open('config/test_conf.yml', "w")
+  file.write %Q{
+    live:
+      queue_uri: 'uri'
+      autograders_yml: ./config/test_autograders.yml
+      django_auth:
+        username: 'username'
+        password: 'password'
+      user_auth:
+        unnecessary: "unnecessary"
+        stuff: "stuff"
+      user_name: 'username'
+      user_pass: 'password'
+      halt: false # default: true, exit when all submission queues are empty
+      sleep_duration: 30 # default 300, time in seconds to sleep when all queues are empty, only valid when halt == false doesn't matter yet
+  }
+  file.flush
+  @configfile = file.path
+
+  grader_payload = "{uri: #{uri}, assignment: #{homework_dir}, spec: #{path_to_spec}}"
+  student_info = "2416d9301d5436e8022b0e6ee0dec5ff"
+  EdXController.any_instance.stub(:authenticate)
+  EdXController.any_instance.stub(:get_queue_length).and_return(1)
+  EdXController.any_instance.stub(:get_submission).and_return({:file => "", :part_name => grader_payload, :student_info=>student_info})
+  client = EdXClient.new nil,'config/test_conf.yml'
+  client.run()
+end
+
+Then(/^we can access "(.*?)" on the file system$/) do |spec|
+  pending # express the regexp above with the code you wish you had
+end
